@@ -26,8 +26,21 @@ function propTypes(type) {
       // see http://facebook.github.io/react/docs/reusable-components.html
       checkPropType = function checkPropType(values, prop, displayName) {
         var value = values[prop];
-        if (!t.validate(value, props[prop]).isValid()) {
-          var message = 'Invalid prop ' + prop + ' = ' + value + ' supplied to ' + displayName + ', should be a ' + name + '.';
+
+        var r = t.validate(value, props[prop]);
+
+        if (!r.isValid()) {
+          var parts = [
+            'Invalid prop ' + prop + ' supplied to ' + displayName + ', should be a ' + name + '.',
+            '',
+          ];
+
+          r.errors.forEach(function(e, i) {
+            parts.push((i+1) + '. ' + e.message);
+          });
+
+          var message = parts.join('\n');
+
           // add a readable entry in the call stack
           checkPropType.displayName = message;
           t.fail(message);
@@ -44,10 +57,16 @@ function propTypes(type) {
 
   if (process.env.NODE_ENV !== 'production') {
     ret.__strict__ = function (values, prop, displayName) {
+      var extra = [];
+
       for (var k in values) {
         if (values.hasOwnProperty(k) && !props.hasOwnProperty(k)) {
-          t.fail('Invalid additional prop ' + k + ' supplied to ' + displayName + '.');
+          extra.push(k);
         }
+      }
+
+      if (extra.length > 0) {
+        t.fail('Invalid additional prop(s) ' + extra.join(', ') + ' supplied to ' + displayName + '.');
       }
     };
 
