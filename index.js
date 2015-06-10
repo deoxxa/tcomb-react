@@ -19,10 +19,24 @@ function propTypes(type) {
       // see http://facebook.github.io/react/docs/reusable-components.html
       checkPropType = function checkPropType(values, prop, displayName) {
         var value = values[prop];
-        if (!t.validate(value, props[prop]).isValid()) {
-          var message = format('Invalid prop `%s` = `%s` supplied to `%s`, should be `%s`', prop, value, displayName, name);
+
+        var r = t.validate(value, props[prop]);
+
+        if (!r.isValid()) {
+          var messages = [
+            format('Invalid prop `%s` supplied to `%s`, should be `%s`', prop, displayName, name),
+            '',
+          ];
+
+          r.errors.forEach(function(e, i) {
+            messages.push((i+1) + '. ' + e.message);
+          });
+
+          var message = messages.join('\n');
+
           // add a readable entry in the call stack
           checkPropType.displayName = message;
+
           t.fail(message);
         }
       };
